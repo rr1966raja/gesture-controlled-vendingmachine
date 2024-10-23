@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Controlled Cursor Movement with Image Interaction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        h1 {
+            margin: 20px;
+        }
+
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            transform: scaleX(-1); /* Mirror the video for a more natural interaction */
+            display: none; /* Hide the video; we only use it for hand landmarks */
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 214px;
+            height: 120px;
+            z-index: 1;
+        }
+
+        #custom-cursor {
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-wrap: wrap;
+        }
+
+        .image-container img {
+            width: 150px;
+            height: 150px;
+            margin: 15px;
+            border: 2px solid #333;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Smart Vending Machine</h1>
+    <h5>Designed by Ratnesh Kumar Raja</h5>
+    
+    <!-- Video element to capture webcam feed -->
+    <video id="video" autoplay playsinline></video>
+
+    <!-- Canvas to draw landmarks on the screen -->
+    <canvas id="output"></canvas>
+
+    <!-- Custom cursor that moves based on hand position -->
+    <div id="custom-cursor"></div>
+
+    <!-- Image container in the center of the screen -->
+    <div class="image-container">
+        <img src="image1.webp" alt="Image 1" id="image1">
+        <img src="image2.webp" alt="Image 2" id="image2">
+        <img src="image3.webp" alt="Image 3" id="image3">
+        <img src="image4.webp" alt="Image 4" id="image4">
+        <img src="image5.webp" alt="Image 5" id="image5">
+        <img src="image6.webp" alt="Image 6" id="image6">
+    </div>
+
+    <!-- Include the MediaPipe Hands library -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+
+    <script>
+        // Get video, canvas, and cursor elements
+        const videoElement = document.getElementById('video');
+        const canvasElement = document.getElementById('output');
+        const canvasCtx = canvasElement.getContext('2d');
+        const cursorElement = document.getElementById('custom-cursor');
+        
+        // Get the images
+        const images = document.querySelectorAll('.image-container img');
+
+        // Get screen size for mapping hand coordinates
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        // Variable to check if palm is closed
+        let isPalmClosed = false;
+
+        // Initialize MediaPipe Hands
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.7
+        });
+
+        hands.onResults(onResults);
+
+        // Access the webcam stream
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({ image: videoElement });
+            },
+            width: 640,
+            height: 480
+        });
+
+        camera.start();
+
+        // Function to process the results of hand tracking
+        function onResults(results) {
+            // Clear the canvas
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            // Draw the video on the canvas
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            // If a hand is detected, move the custom cursor
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+
+                // Extract the wrist or index finger tip coordinates
+                const indexFingerTip = landmarks[8]; // Index finger tip landmark
+                const thumbTip = landmarks[4]; // Thumb tip landmark
+
+                // Check if the palm is closed (if thumb and index finger tips are close)
+                const distance = Math.sqrt(
+                    Math.pow(indexFingerTip.x - thumbTip.x, 2) +
+                    Math.pow(indexFingerTip.y - thumbTip.y, 2)
+                );
+                isPalmClosed = distance < 0.1; // Consider the palm closed if the distance is small
+
+                // Map hand coordinates to screen coordinates, flipping the x-axis
+                const x = (1 - indexFingerTip.x) * screenWidth; // Reversed horizontal position
+                const y = indexFingerTip.y * screenHeight; // Vertical position (normal)
+
+                // Move the custom cursor based on the hand position
+                moveCursor(x, y);
+
+                // Check for interaction with images if the palm is closed
+                if (isPalmClosed) {
+                    images.forEach(image => {
+                        const rect = image.getBoundingClientRect();
+                        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                            // Redirect to a new page or perform action based on the image
+                            window.location.href = `${image.id}.html`; // Replace with appropriate URLs
+                        }
+                    });
+                }
+
+                // Optionally, draw the landmarks on the canvas for visualization
+                drawLandmarks(landmarks);
+            }
+
+            canvasCtx.restore();
+        }
+
+        // Move the custom cursor to the given coordinates
+        function moveCursor(x, y) {
+            cursorElement.style.left = `${x - cursorElement.offsetWidth / 2}px`;
+            cursorElement.style.top = `${y - cursorElement.offsetHeight / 2}px`;
+        }
+
+        // Draw the landmarks on the canvas for visualization
+        function drawLandmarks(landmarks) {
+            canvasCtx.strokeStyle = '#00FF00';
+            canvasCtx.lineWidth = 2;
+
+            // Draw each point on the hand as a red circle
+            for (let i = 0; i < landmarks.length; i++) {
+                const x = landmarks[i].x * canvasElement.width;
+                const y = landmarks[i].y * canvasElement.height;
+                canvasCtx.beginPath();
+                canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
+                canvasCtx.fillStyle = 'red';
+                canvasCtx.fill();
+            }
+        }
+    </script>
+
+</body>
+</html>
