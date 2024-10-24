@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coca-Cola Purchased</title>
+    <title>Lemone Purchased</title>
     <style>
         body {
             display: flex;
@@ -48,13 +48,19 @@
 <body>
 
     <div class="message-container">
-        <h1>Coca-Cola Purchased!</h1>
+        <h1>Lemone Purchased!</h1>
         <p>Thank you for your purchase.</p>
         <button class="back-button" onclick="goBack()">Back to Home</button>
     </div>
     <script>
-        function goBack() {
+        // Automatically redirects to the home page after 3 seconds
+        setTimeout(function() {
             window.location.href = 'index.html'; // Redirects to the main vending machine page (index.html)
+        }, 3000); // 3000 milliseconds = 3 seconds
+
+        // Optional: Function to go back manually, if needed
+        function goBack() {
+            window.location.href = 'index.html';
         }
     </script>
 
