@@ -31,12 +31,7 @@
             color: #555;
             margin-bottom: 20px;
         }
-        .qr-code {
-            width: 150px;
-            height: 150px;
-            margin-bottom: 20px;
-            border: 1px solid #333;
-        }
+
         .confirm-button {
             padding: 15px 25px;
             background-color: #007BFF;
@@ -53,29 +48,29 @@
 </head>
 <body>
 
-    <div class="container">
-        <h1>Transaction Details</h1>
-        <div class="info">
-            <p>Selected Category: <span id="selectedCategory"></span></p>
-            <p>Total Bill: ₹<span id="totalBill">50</span></p> <!-- Placeholder for total bill -->
-        </div>
-        <div class="qr-code" id="qrCode">QR Code Placeholder</div> <!-- Placeholder for QR code -->
-        <button class="confirm-button" onclick="confirmTransaction()">Confirm and Pay</button>
+<div class="container">
+    <h1>Transaction Details</h1>
+    <div class="info">
+        <p>Selected Category: <span id="selectedCategory"></span></p>
+        <p>Total Bill: ₹<span id="totalBill">50</span></p>
     </div>
 
-    <script>
-        // Display selected category
-        document.getElementById('selectedCategory').innerText = sessionStorage.getItem("selectedCategory");
+    <div class="qr-code">
+        <img src="Payment.jpg" alt="Google Pay QR" width="200">
+    </div>
 
-        function confirmTransaction() {
-            alert("Transaction confirmed! Thank you for your purchase.");
-            window.location.href = 'home.html'; // Redirect back to home
-        }
+    <button class="confirm-button" onclick="confirmTransaction()">Confirm and Pay</button>
+</div>
 
-        // Generate a placeholder QR code (For demonstration only)
-        // You can use a real QR code generator API or library here
-        document.getElementById('qrCode').innerText = "Scan to Pay QR";
-    </script>
+<script>
+    // Display selected category from sessionStorage
+    document.getElementById('selectedCategory').innerText = sessionStorage.getItem("selectedCategory");
+
+    function confirmTransaction() {
+        alert("Transaction confirmed! Thank you for your purchase.");
+        window.location.href = 'home.html'; // Redirect back to home
+    }
+</script>
 
 </body>
 </html>
