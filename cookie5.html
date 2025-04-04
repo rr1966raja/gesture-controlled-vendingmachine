@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemone Purchased</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .message-container {
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        h1 {
+            color: #e50914; /* Coca-Cola red */
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 18px;
+            color: #333;
+        }
+        .back-button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="message-container">
+        <h1>Bornbita !</h1>
+        <p>Your Selection has been added to cart.</p>
+        <button class="back-button" onclick="goBack()">Proceed to Payment</button>
+    </div>
+    <script>
+        // Automatically redirects to the home page after 3 seconds
+        setTimeout(function() {
+            window.location.href = 'transaction.html'; // Redirects to the main vending machine page (index.html)
+        }, 3000); // 3000 milliseconds = 3 seconds
+
+        // Optional: Function to go back manually, if needed
+        function goBack() {
+            window.location.href = 'transaction.html';
+        }
+    </script>
+
+</body>
+</html>
