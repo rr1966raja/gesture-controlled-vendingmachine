@@ -2,13 +2,12 @@ const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('output');
 const canvasCtx = canvasElement.getContext('2d');
 
-// Set up the MediaPipe Hands instance
 const hands = new Hands({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
 
 hands.setOptions({
-    maxNumHands: 1,  // Detect only one hand
+    maxNumHands: 1,
     modelComplexity: 1,
     minDetectionConfidence: 0.7,
     minTrackingConfidence: 0.7
@@ -16,7 +15,6 @@ hands.setOptions({
 
 hands.onResults(onResults);
 
-// Access the webcam and set up video feed
 navigator.mediaDevices.getUserMedia({ video: true })
     .then((stream) => {
         videoElement.srcObject = stream;
@@ -26,73 +24,104 @@ navigator.mediaDevices.getUserMedia({ video: true })
     });
 
 videoElement.addEventListener('loadeddata', (event) => {
-    const width = videoElement.videoWidth;
-    const height = videoElement.videoHeight;
-    canvasElement.width = width;
-    canvasElement.height = height;
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
 
     const camera = new Camera(videoElement, {
         onFrame: async () => {
             await hands.send({ image: videoElement });
         },
-        width: width,
-        height: height
+        width: videoElement.videoWidth,
+        height: videoElement.videoHeight
     });
     camera.start();
 });
 
+let currentSection = 'sectionSelection';
+let selectedItem = null;
+
 function onResults(results) {
-    // Clear the canvas before drawing new frame
-    canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-    // Draw the video frame
-    canvasCtx.drawImage(
-        results.image, 0, 0, canvasElement.width, canvasElement.height);
-
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        for (const landmarks of results.multiHandLandmarks) {
-            drawLandmarks(landmarks);
+        const landmarks = results.multiHandLandmarks[0];
+        const indexFinger = landmarks[8];
+        const x = indexFinger.x * canvasElement.width;
+        const y = indexFinger.y * canvasElement.height;
+
+        if (currentSection === 'sectionSelection') {
+            checkSelectionGesture(x, y, document.querySelectorAll('.box'));
+        } else if (currentSection === 'itemSelection') {
+            checkSelectionGesture(x, y, document.querySelectorAll('.item'));
+        }
+
+        if (isPalmClosed(landmarks)) {
+            confirmSelection();
         }
     }
-
-    canvasCtx.restore();
 }
 
-// Function to draw hand landmarks on the canvas
-function drawLandmarks(landmarks) {
-    canvasCtx.strokeStyle = '#00FF00';
-    canvasCtx.lineWidth = 2;
+function checkSelectionGesture(x, y, elements) {
+    elements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
+            el.style.backgroundColor = '#ddd';
+            selectedItem = el.innerText;
+        } else {
+            el.style.backgroundColor = '#e5ff00';
+        }
+    });
+}
 
-    // Draw each point on the hand
-    for (let i = 0; i < landmarks.length; i++) {
-        const x = landmarks[i].x * canvasElement.width;
-        const y = landmarks[i].y * canvasElement.height;
-        canvasCtx.beginPath();
-        canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
-        canvasCtx.fillStyle = 'red';
-        canvasCtx.fill();
+function confirmSelection() {
+    if (currentSection === 'sectionSelection' && selectedItem) {
+        showItems(selectedItem);
+    } else if (currentSection === 'itemSelection' && selectedItem) {
+        showTransactionPage(selectedItem);
     }
+}
 
-    // Optionally, connect some key landmarks with lines (for example, fingertips to palm)
-    const fingers = [
-        [0, 5], [5, 9], [9, 13], [13, 17], [17, 0], // Connections to the palm
-        [0, 1], [1, 2], [2, 3], [3, 4], // Thumb
-        [5, 6], [6, 7], [7, 8], // Index finger
-        [9, 10], [10, 11], [11, 12], // Middle finger
-        [13, 14], [14, 15], [15, 16], // Ring finger
-        [17, 18], [18, 19], [19, 20] // Pinky finger
-    ];
+function isPalmClosed(landmarks) {
+    const distance = Math.sqrt(
+        Math.pow(landmarks[4].x - landmarks[8].x, 2) +
+        Math.pow(landmarks[4].y - landmarks[8].y, 2)
+    );
+    return distance < 0.1;
+}
 
-    canvasCtx.beginPath();
-    for (let i = 0; i < fingers.length; i++) {
-        const [startIdx, endIdx] = fingers[i];
-        const startX = landmarks[startIdx].x * canvasElement.width;
-        const startY = landmarks[startIdx].y * canvasElement.height;
-        const endX = landmarks[endIdx].x * canvasElement.width;
-        const endY = landmarks[endIdx].y * canvasElement.height;
-        canvasCtx.moveTo(startX, startY);
-        canvasCtx.lineTo(endX, endY);
-    }
-    canvasCtx.stroke();
+function showItems(section) {
+    currentSection = 'itemSelection';
+    document.getElementById('sectionSelection').classList.add('hidden');
+    document.getElementById('itemSelection').classList.remove('hidden');
+
+    const items = document.getElementById('items');
+    items.innerHTML = ''; // Clear previous items
+    const itemList = getItemsForSection(section);
+    itemList.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.classList.add('box', 'item');
+        itemDiv.innerText = item;
+        items.appendChild(itemDiv);
+    });
+}
+
+function getItemsForSection(section) {
+    const sections = {
+        'Cookies': ['Chocolate Chip', 'Oatmeal Raisin'],
+        'Beverages': ['Soda', 'Juice'],
+        'Snacks': ['Chips', 'Pretzels'],
+        'Hot Meals': ['Pizza', 'Burger']
+    };
+    return sections[section] || [];
+}
+
+function showTransactionPage(item) {
+    currentSection = 'transactionPage';
+    document.getElementById('itemSelection').classList.add('hidden');
+    document.getElementById('transactionPage').classList.remove('hidden');
+    document.getElementById('selectedItemText').innerText = `Selected Item: ${item}`;
+}
+
+function showThankYouPage() {
+    document.getElementById('transactionPage').classList.add('hidden');
+    document.getElementById('thankYouPage').classList.remove('hidden');
 }

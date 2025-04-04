@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Vending Machine - Home</title>
+    <title>Select Food Category</title>
     <style>
         body {
             display: flex;
@@ -12,7 +12,7 @@
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: #f9f9f9;
         }
         .container {
             text-align: center;
@@ -23,27 +23,23 @@
         }
         h1 {
             color: #333;
-            font-size: 36px;
+            font-size: 28px;
             margin-bottom: 20px;
         }
-        img {
-            width: 300px;
-            height: auto;
-            margin-bottom: 30px;
-        }
-        .start-button {
-            padding: 15px 30px;
-            background-color: #007BFF;
+        .category-button {
+            padding: 15px 25px;
+            margin: 10px;
+            background-color: #4CAF50;
             color: #fff;
             border: none;
             border-radius: 5px;
             font-size: 18px;
             cursor: pointer;
         }
-        .start-button:hover {
-            background-color: #0056b3;
+        .category-button:hover {
+            background-color: #45a049;
         }
-    
+
         video {
             position: absolute;
             top: 0;
@@ -97,62 +93,26 @@
 
     <!-- Canvas to draw landmarks on the screen -->
     <canvas id="output"></canvas>
-    
+        
     <!-- Custom cursor that moves based on hand position -->
     <div id="custom-cursor"></div>
 
     <div class="container">
-        <h1>Welcome to Smart Vending Machine</h1>
-        <img src="home.jpeg" alt="Smart Vending Machine">
-        <br>
-        <button class="start-button" id="startButton" onclick="startVending()">Start</button>
+        <h1>Select Food Category</h1>
+        <button class="category-button" id="beverages" onclick="selectCategory('Beverages')">Beverages</button>
+        <button class="category-button" id="cookies" onclick="selectCategory('Cookies/Cakes')">Cookies / Cakes</button>
+        <button class="category-button" id="snacks" onclick="selectCategory('Snacks')">Snacks</button>
+        <button class="category-button" id="meals" onclick="selectCategory('Quick Meals')">Quick Meals</button>
     </div>
 
-    <!-- Hidden video stream for capturing hand gestures -->
-    <video id="video" width="640" height="480" autoplay></video>
-
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
-    <!-- Include the MediaPipe Hands library -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+
     <script>
-        // Load the handpose model
-        let model;
-        let video = document.getElementById('video');
-
-        async function setupCamera() {
-            video.width = 640;
-            video.height = 480;
-
-            // Request access to webcam
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: true
-            });
-            video.srcObject = stream;
-
-            return new Promise((resolve) => {
-                video.onloadedmetadata = () => {
-                    resolve(video);
-                };
-            });
-        }
-
-        async function detectGesture() {
-            const predictions = await model.estimateHands(video);
-            
-            // If a hand is detected
-            if (predictions.length > 0) {
-                const hand = predictions[0];
-                
-                // Detect open hand (or any gesture you are using)
-                if (isOpenHandGesture(hand)) {
-                    // Simulate button click
-                    document.getElementById('startButton').click();
-                }
-            }
-
-            requestAnimationFrame(detectGesture);
+        function selectCategory(category) {
+            // Store selected category in session storage and navigate to transaction page
+            sessionStorage.setItem("selectedCategory", category);
+            window.location.href = 'index.html';
         }
 
         // Sample function to detect an open hand gesture
@@ -260,11 +220,18 @@
                 // Check for interaction with images if the palm is closed
                 if (isPalmClosed) {
                 // Check interaction with the Start button
-                const startButton = document.getElementById('startButton');
-                const btnRect = startButton.getBoundingClientRect();
-                if (x >= btnRect.left && x <= btnRect.right && y >= btnRect.top && y <= btnRect.bottom) {
-                startButton.click(); // Trigger the Start button
-                }
+                if (isPalmClosed) {
+    // Query all category buttons
+    const buttons = document.querySelectorAll('.category-button');
+
+    buttons.forEach(button => {
+        const rect = button.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+            button.click(); // Trigger the button's click event
+        }
+    });
+}
+
 
                 // Check interaction with the product images (if present)
                 images.forEach(image => {
@@ -305,7 +272,6 @@
             }
         }
 
-        
     </script>
 
 </body>
