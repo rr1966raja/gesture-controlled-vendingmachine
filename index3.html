@@ -3,41 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Food Category</title>
+    <title>Hand Controlled Cursor Movement with Image Interaction</title>
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-        }
-        .container {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
             text-align: center;
-            background-color: #fff;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
+
         h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
-        .category-button {
-            padding: 15px 25px;
-            margin: 10px;
-            background-color: #4CAF50;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .category-button:hover {
-            background-color: #45a049;
+            margin: 20px;
         }
 
         video {
@@ -88,81 +66,33 @@
 </head>
 <body>
 
+    <h1>Smart Vending Machine</h1>
+    <h5>Designed by Ratnesh Kumar Raja</h5>
+    
     <!-- Video element to capture webcam feed -->
     <video id="video" autoplay playsinline></video>
 
     <!-- Canvas to draw landmarks on the screen -->
     <canvas id="output"></canvas>
-        
+
     <!-- Custom cursor that moves based on hand position -->
     <div id="custom-cursor"></div>
 
-    <div class="container">
-        <h1>Select Food Category</h1>
-        <button class="category-button" id="beverages" onclick="selectCategory('Beverages')">Beverages</button>
-        <button class="category-button" id="cookies" onclick="selectCategory('Cookies/Cakes')">Cookies / Cakes</button>
-        <button class="category-button" id="snacks" onclick="selectCategory('Snacks')">Snacks</button>
-        <button class="category-button" id="meals" onclick="selectCategory('Quick Meals')">Quick Meals</button>
+    <!-- Image container in the center of the screen -->
+    <div class="image-container">
+        <img src="chikki.jpg" alt="chikki" id="snacks1">
+        <img src="Peanut.jpg" alt="Peanut" id="snacks2">
+        <img src="Pista.jpg" alt="Pista" id="snacks3">
+        <img src="almonds.jpg" alt="almonds" id="snacks4">
+        <img src="aloobhujia.jpg" alt="aloobhujia" id="snacks5">
+        <img src="Cashew.jpg" alt="Cashew" id="snacks6">
     </div>
 
+    <!-- Include the MediaPipe Hands library -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
 
     <script>
-        function selectCategory(category) {
-    sessionStorage.setItem("selectedCategory", category);
-
-    switch (category) {
-        case 'Beverages':
-            window.location.href = 'index.html';
-            break;
-        case 'Cookies/Cakes':
-            window.location.href = 'index2.html';
-            break;
-        case 'Snacks':
-            window.location.href = 'index3.html';
-            break;
-        case 'Quick Meals':
-            window.location.href = 'index4.html';
-            break;
-            
-        default:
-            console.warn('Unknown category selected:', category);
-            break;
-    }
-}
-
-
-        // Sample function to detect an open hand gesture
-        function isOpenHandGesture(hand) {
-            // Assuming that the open hand gesture can be identified by a specific distance between fingertips
-            const landmarks = hand.landmarks;
-            const thumbTip = landmarks[4];
-            const indexTip = landmarks[8];
-            const distance = Math.sqrt(
-                Math.pow(thumbTip[0] - indexTip[0], 2) +
-                Math.pow(thumbTip[1] - indexTip[1], 2)
-            );
-
-            // Customize the threshold based on actual gesture
-            return distance > 100;  // Adjust this value based on testing
-        }
-
-        async function init() {
-            model = await handpose.load();
-            await setupCamera();
-            detectGesture();
-        }
-
-        function startVending() {
-            window.location.href = 'food-selection.html'; // Redirect to your main vending page
-        }
-
-        // Initialize the gesture detection when the page loads
-        window.onload = () => {
-            init();
-        };
-
         // Get video, canvas, and cursor elements
         const videoElement = document.getElementById('video');
         const canvasElement = document.getElementById('output');
@@ -237,29 +167,14 @@
 
                 // Check for interaction with images if the palm is closed
                 if (isPalmClosed) {
-                // Check interaction with the Start button
-                if (isPalmClosed) {
-    // Query all category buttons
-    const buttons = document.querySelectorAll('.category-button');
-
-    buttons.forEach(button => {
-        const rect = button.getBoundingClientRect();
-        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-            button.click(); // Trigger the button's click event
-        }
-    });
-}
-
-
-                // Check interaction with the product images (if present)
-                images.forEach(image => {
-                const rect = image.getBoundingClientRect();
-                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-                window.location.href = `${image.id}.html`;
+                    images.forEach(image => {
+                        const rect = image.getBoundingClientRect();
+                        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                            // Redirect to a new page or perform action based on the image
+                            window.location.href = `${image.id}.html`; // Replace with appropriate URLs
                         }
                     });
                 }
-
 
                 // Optionally, draw the landmarks on the canvas for visualization
                 drawLandmarks(landmarks);
@@ -290,6 +205,7 @@
             }
         }
 
+        
     </script>
 
 </body>
